@@ -2,8 +2,10 @@ package com.mealtrack.service;
 
 import com.mealtrack.dto.usuario.UsuarioRequest;
 import com.mealtrack.dto.usuario.UsuarioResponse;
+import com.mealtrack.exception.RecursoNaoEncontradoException;
 import com.mealtrack.mapper.UsuarioMapper;
 import com.mealtrack.model.Usuario;
+import com.mealtrack.model.enums.NivelAcesso;
 import com.mealtrack.repository.UsuarioRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -33,24 +35,33 @@ public class UsuarioService {
 
     public UsuarioResponse buscarPorId(Integer id) {
         Usuario usuario = repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Usuário não encontrado."));
+                .orElseThrow(() -> new RecursoNaoEncontradoException(
+                        "Usuário não encontrado com ID: " + id
+                ));
+
         return mapper.toResponse(usuario);
     }
 
     public UsuarioResponse salvar(UsuarioRequest request) {
         Usuario usuario = mapper.toEntity(request);
+
         usuario.setSenha(passwordEncoder.encode(usuario.getSenha()));
+
         return mapper.toResponse(repository.save(usuario));
     }
 
     public UsuarioResponse atualizar(Integer id, Usuario usuarioAtualizado) {
         Usuario usuario = repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Usuário não encontrado."));
+                .orElseThrow(() -> new RecursoNaoEncontradoException(
+                        "Usuário não encontrado com ID: " + id
+                ));
 
         usuario.setNome(usuarioAtualizado.getNome());
         usuario.setEmail(usuarioAtualizado.getEmail());
 
-        if (usuarioAtualizado.getSenha() != null && !usuarioAtualizado.getSenha().isBlank()) {
+        if (usuarioAtualizado.getSenha() != null
+                && !usuarioAtualizado.getSenha().isBlank()) {
+
             usuario.setSenha(passwordEncoder.encode(usuarioAtualizado.getSenha()));
         }
 
@@ -63,12 +74,17 @@ public class UsuarioService {
     }
 
     public void excluir(Integer id) {
-        repository.deleteById(id);
+        Usuario usuario = repository.findById(id)
+                .orElseThrow(() -> new RecursoNaoEncontradoException(
+                        "Usuário não encontrado com ID: " + id
+                ));
+
+        repository.delete(usuario);
     }
 
     public List<Usuario> listarFuncionarios() {
         return repository.findAll().stream()
-                .filter(u -> u.getNivelAcesso() != null)
+                .filter(usuario -> usuario.getNivelAcesso() == NivelAcesso.FUNCIONARIO)
                 .toList();
     }
 }

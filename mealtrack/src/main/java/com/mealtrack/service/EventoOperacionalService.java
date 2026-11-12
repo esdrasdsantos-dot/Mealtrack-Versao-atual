@@ -21,9 +21,6 @@ public class EventoOperacionalService {
         this.repository = repository;
     }
 
-    /**
-     * Registra um evento operacional no histórico persistente.
-     */
     public EventoOperacional registrar(
             TipoEvento tipo,
             String descricao,
@@ -38,22 +35,30 @@ public class EventoOperacionalService {
                 .restaurante(restaurante)
                 .dataHora(dataHora)
                 .build();
+
         return repository.save(evento);
     }
 
     public List<Map<String, Object>> listarRecentes() {
-        return repository.findTop50ByOrderByDataHoraDesc().stream()
+        return repository.findTop50ByOrderByDataHoraDesc()
+                .stream()
                 .map(this::paraMapa)
                 .toList();
     }
 
     private Map<String, Object> paraMapa(EventoOperacional evento) {
         Map<String, Object> mapa = new HashMap<>();
+
         mapa.put("id", evento.getId());
         mapa.put("tipo", evento.getTipo().name());
         mapa.put("descricao", evento.getDescricao());
         mapa.put("dataHora", evento.getDataHora());
-        mapa.put("alimento", evento.getAlimento() != null ? evento.getAlimento().getNome() : null);
+        mapa.put("alimento",
+                evento.getAlimento() != null
+                        ? evento.getAlimento().getNome()
+                        : null
+        );
+
         return mapa;
     }
 }

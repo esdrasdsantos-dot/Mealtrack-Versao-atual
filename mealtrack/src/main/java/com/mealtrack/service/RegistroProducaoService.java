@@ -1,5 +1,7 @@
+
 package com.mealtrack.service;
 
+import com.mealtrack.exception.RecursoNaoEncontradoException;
 import com.mealtrack.model.RegistroProducao;
 import com.mealtrack.repository.RegistroProducaoRepository;
 import org.springframework.stereotype.Service;
@@ -21,7 +23,11 @@ public class RegistroProducaoService {
 
     public RegistroProducao buscarPorId(Integer id) {
         return repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Registro não encontrado."));
+                .orElseThrow(() ->
+                        new RecursoNaoEncontradoException(
+                                "Registro de produção não encontrado com ID: " + id
+                        )
+                );
     }
 
     public RegistroProducao salvar(RegistroProducao registro) {
@@ -29,15 +35,19 @@ public class RegistroProducaoService {
     }
 
     public RegistroProducao atualizar(Integer id, RegistroProducao atualizado) {
+
         RegistroProducao registro = buscarPorId(id);
+
         registro.setAlimento(atualizado.getAlimento());
         registro.setUsuario(atualizado.getUsuario());
         registro.setDataRegistro(atualizado.getDataRegistro());
         registro.setQuantidadeProduzida(atualizado.getQuantidadeProduzida());
+
         return repository.save(registro);
     }
 
     public void excluir(Integer id) {
-        repository.deleteById(id);
+        RegistroProducao registro = buscarPorId(id);
+        repository.delete(registro);
     }
 }

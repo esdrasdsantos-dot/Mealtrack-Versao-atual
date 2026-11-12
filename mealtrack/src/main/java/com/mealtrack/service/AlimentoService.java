@@ -2,6 +2,7 @@ package com.mealtrack.service;
 
 import com.mealtrack.model.Alimento;
 import com.mealtrack.repository.AlimentoRepository;
+import com.mealtrack.exception.RecursoNaoEncontradoException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -21,7 +22,11 @@ public class AlimentoService {
 
     public Alimento buscarPorId(Integer id) {
         return repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Alimento não encontrado."));
+                .orElseThrow(() ->
+                        new RecursoNaoEncontradoException(
+                                "Alimento não encontrado com ID: " + id
+                        )
+                );
     }
 
     public Alimento salvar(Alimento alimento) {
@@ -31,6 +36,7 @@ public class AlimentoService {
 
     public Alimento atualizar(Integer id, Alimento atualizado) {
         Alimento alimento = buscarPorId(id);
+
         alimento.setNome(atualizado.getNome());
         alimento.setCategoria(atualizado.getCategoria());
         alimento.setValorPorQuilograma(atualizado.getValorPorQuilograma());
@@ -40,11 +46,14 @@ public class AlimentoService {
         alimento.setQuantidadeProduzida(atualizado.getQuantidadeProduzida());
         alimento.setQuantidadeConsumida(atualizado.getQuantidadeConsumida());
         alimento.setQuantidadeReposicaoKg(atualizado.getQuantidadeReposicaoKg());
+
         alimento.atualizarIndicadores();
+
         return repository.save(alimento);
     }
 
     public void excluir(Integer id) {
-        repository.deleteById(id);
+        Alimento alimento = buscarPorId(id);
+        repository.delete(alimento);
     }
 }

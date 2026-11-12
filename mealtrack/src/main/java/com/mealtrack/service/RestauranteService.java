@@ -1,5 +1,6 @@
 package com.mealtrack.service;
 
+import com.mealtrack.exception.RecursoNaoEncontradoException;
 import com.mealtrack.model.Restaurante;
 import com.mealtrack.repository.RestauranteRepository;
 import org.springframework.stereotype.Service;
@@ -21,7 +22,9 @@ public class RestauranteService {
 
     public Restaurante buscarPorId(Integer id) {
         return repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Restaurante não encontrado."));
+                .orElseThrow(() -> new RecursoNaoEncontradoException(
+                        "Restaurante não encontrado com ID: " + id
+                ));
     }
 
     public Restaurante salvar(Restaurante restaurante) {
@@ -30,16 +33,19 @@ public class RestauranteService {
 
     public Restaurante atualizar(Integer id, Restaurante atualizado) {
         Restaurante restaurante = buscarPorId(id);
+
         restaurante.setCnpj(atualizado.getCnpj());
         restaurante.setNome(atualizado.getNome());
         restaurante.setEndereco(atualizado.getEndereco());
         restaurante.setEmail(atualizado.getEmail());
         restaurante.setTelefone(atualizado.getTelefone());
         restaurante.setDataFundacao(atualizado.getDataFundacao());
+
         return repository.save(restaurante);
     }
 
     public void excluir(Integer id) {
-        repository.deleteById(id);
+        Restaurante restaurante = buscarPorId(id);
+        repository.delete(restaurante);
     }
 }
