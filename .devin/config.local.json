@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Exec(cd)",
+      "Exec(npm run)",
+      "Exec(mvn)",
+      "Exec(netstat)",
+      "Exec(taskkill)",
+      "Exec(findstr)",
+      "Exec(mysql)",
+      "Exec(node)",
+      "Exec(npm)",
+      "Exec(npx vite)",
+      "Exec(dir)",
+      "Exec(powershell)"
+    ]
+  }
+}
