@@ -1,6 +1,6 @@
 import { NavLink } from "react-router-dom";
 
-import logoMealTrack from "@/assets/logo-mealtrack.png";
+import logoMealTrack from "@/assets/Mealtrack.png";
 import { NAV_ITEMS } from "@/components/layout/nav-items";
 import { APP_NAME } from "@/config/app";
 import { useAuth } from "@/hooks/useAuth";

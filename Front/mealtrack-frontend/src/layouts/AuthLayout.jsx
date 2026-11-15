@@ -1,6 +1,6 @@
 import { Outlet } from "react-router-dom";
 
-import logoMealTrack from "@/assets/logo-mealtrack.png";
+import logoMealTrack from "@/assets/Mealtrack.png";
 import { APP_NAME } from "@/config/app";
 
 export function AuthLayout() {
