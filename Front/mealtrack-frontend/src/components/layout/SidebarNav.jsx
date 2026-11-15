@@ -5,6 +5,7 @@ import { NAV_ITEMS } from "@/components/layout/nav-items";
 import { APP_NAME } from "@/config/app";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
+import { APP_VERSION } from "@/utils/version";
 
 /** @param {{ onNavigate?: () => void }} props */
 export function SidebarNav({ onNavigate }) {
@@ -47,7 +48,10 @@ export function SidebarNav({ onNavigate }) {
       </nav>
 
       <div className="border-t border-sidebar-border px-4 py-3 text-xs text-sidebar-foreground/60">
-        MealTrack © {new Date().getFullYear()}
+        <p>MealTrack © {new Date().getFullYear()}</p>
+        <p className="mt-1 font-medium tracking-wide">
+          {APP_VERSION}
+        </p>
       </div>
     </div>
   );
