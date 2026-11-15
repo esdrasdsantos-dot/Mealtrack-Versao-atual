@@ -1,16 +1,21 @@
 
-name: Versionamento automático
+name: Versionamento - Testes
 
 on:
   push:
     branches:
-      - main
+      - test
 
 permissions:
   contents: write
 
+concurrency:
+  group: versionamento-test
+  cancel-in-progress: false
+
 jobs:
   versionar:
+    if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
 
     steps:
@@ -18,35 +23,31 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          token: ${{ github.token }}
 
       - name: Configurar Git
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-      - name: Identificar e atualizar versão
+      - name: Identificar tipo de alteração
         id: bump
         shell: bash
+        env:
+          BEFORE: ${{ github.event.before }}
         run: |
-          git fetch --tags --force
+          VERSION_FILE="Front/mealtrack-frontend/VERSION"
+          VERSION_JS="Front/mealtrack-frontend/src/utils/version.js"
 
-          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || true)
-
-          if [ -z "$LAST_TAG" ]; then
-            echo "::error::Tag inicial não encontrada. Crie v1.0.0."
+          if [ ! -f "$VERSION_FILE" ]; then
+            echo "::error::Arquivo VERSION não encontrado."
             exit 1
           fi
 
-          COMMITS=$(git log "$LAST_TAG..HEAD" --format=%s)
-
-          if [ -z "$COMMITS" ]; then
-            echo "Nenhum commit novo para versionar."
-            exit 0
+          if [ "$BEFORE" = "0000000000000000000000000000000000000000" ]; then
+            COMMITS=$(git log -1 --format=%s HEAD)
+          else
+            COMMITS=$(git log "$BEFORE..$GITHUB_SHA" --format=%s)
           fi
-
-          echo "Commits encontrados:"
-          echo "$COMMITS"
 
           if echo "$COMMITS" | grep -Eiq '^(master)(:|\(|[[:space:]]|$)'; then
             TYPE="major"
@@ -55,11 +56,17 @@ jobs:
           elif echo "$COMMITS" | grep -Eiq '^(fix)(:|\(|[[:space:]]|$)'; then
             TYPE="patch"
           else
-            echo "Nenhum termo de versionamento identificado."
+            echo "Nenhum termo de versionamento encontrado."
             exit 0
           fi
 
-          VERSION=${LAST_TAG#v}
+          VERSION=$(tr -d '[:space:]' < "$VERSION_FILE")
+
+          if ! [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::Versão inválida: $VERSION"
+            exit 1
+          fi
+
           IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
 
           case "$TYPE" in
@@ -78,29 +85,14 @@ jobs:
           esac
 
           NEW_VERSION="$MAJOR.$MINOR.$PATCH"
-          NEW_TAG="v$NEW_VERSION"
 
-          echo "$NEW_VERSION" > Front/mealtrack-frontend/VERSION
+          echo "$NEW_VERSION" > "$VERSION_FILE"
 
-          printf 'export const APP_VERSION = "V%s";\n' "$NEW_VERSION" \
-            > Front/mealtrack-frontend/src/utils/version.js
+          printf 'export const APP_VERSION = "V%s";\n' "$NEW_VERSION" > "$VERSION_JS"
 
-          git add Front/mealtrack-frontend/VERSION
-          git add Front/mealtrack-frontend/src/utils/version.js
+          echo "Versão atualizada: V$NEW_VERSION"
 
-          git commit -m "chore: release $NEW_TAG"
+          git add "$VERSION_FILE" "$VERSION_JS"
+          git commit -m "chore: atualizar versão para V$NEW_VERSION"
 
-          git tag -a "$NEW_TAG" -m "Release V$NEW_VERSION"
-
-          git push origin HEAD:main
-          git push origin "$NEW_TAG"
-
-          echo "tag=$NEW_TAG" >> "$GITHUB_OUTPUT"
-          echo "released=true" >> "$GITHUB_OUTPUT"
-
-      - name: Publicar Release no GitHub
-        if: steps.bump.outputs.released == 'true'
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ steps.bump.outputs.tag }}
-          generate_release_notes: true
+          git push origin HEAD:test
