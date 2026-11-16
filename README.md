@@ -1,4 +1,4 @@
-# MealTrack
+# MealTrack - Gestão de Restaurantes V1.0
 
 Sistema full stack para monitoramento de desperdício de alimentos em restaurantes — MVP pronto para apresentação de banca.
 
