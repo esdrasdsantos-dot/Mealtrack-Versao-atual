@@ -111,7 +111,6 @@ O que resta na bandeja **não** é desperdício. Apenas a sobra descartada conta
 ## Equipe
 
 - João Vitor Moreira
-- João Vitor Sampaio
 - Esdras
 - Caique
 - Felipe Borges
